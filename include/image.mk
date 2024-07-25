@@ -554,15 +554,17 @@ define Device/Build/kernel
     ifdef CONFIG_IB
       install: $$(KDIR_KERNEL_IMAGE)
     endif
-    ifneq ($$(filter squashfs,$(2)),)
-      # Force squashfs to be built before generating kernel image
-      ROOTFS/squashfs/$(1) := \
-	$(KDIR)/root.squashfs$$(strip \
-		$$(if $$(FS_OPTIONS/squashfs),+fs=$$(call param_mangle,$$(FS_OPTIONS/squashfs))) \
-	)$$(strip \
-		$(if $(TARGET_PER_DEVICE_ROOTFS),+pkg=$$(ROOTFS_ID/$(1))) \
-	)
-      $$(KDIR_KERNEL_IMAGE): $$(ROOTFS/squashfs/$(1))
+    ifeq ($(CONFIG_TARGET_DEVICE_$(call target_conf,$(BOARD)$(if $(SUBTARGET),_$(SUBTARGET)))_DEVICE_$(1)),y)
+      ifneq ($$(filter squashfs,$(2)),)
+        # Force squashfs to be built before generating kernel image
+        ROOTFS/squashfs/$(1) := \
+		$(KDIR)/root.squashfs$$(strip \
+			$$(if $$(FS_OPTIONS/squashfs),+fs=$$(call param_mangle,$$(FS_OPTIONS/squashfs))) \
+		)$$(strip \
+			$(if $(TARGET_PER_DEVICE_ROOTFS),+pkg=$$(ROOTFS_ID/$(1))) \
+		)
+        $$(KDIR_KERNEL_IMAGE): $$(ROOTFS/squashfs/$(1))
+      endif
     endif
     $$(KDIR_KERNEL_IMAGE): $(KDIR)/$$(KERNEL_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS) image_prepare
 	@rm -f $$@
