@@ -342,7 +342,7 @@ var CBIWifiFrequencyValue = form.Value.extend({
 			this.channels = {
 				'2g': [ 'auto', 'auto', true ],
 				'5g': [ 'auto', 'auto', true ],
-				'6g': [],
+				'6g': [ 'auto', 'auto', true ],
 				'60g': []
 			};
 
@@ -415,7 +415,8 @@ var CBIWifiFrequencyValue = form.Value.extend({
 				],
 				'ax': [
 					'2g', '2.4 GHz', this.channels['2g'].length > 3,
-					'5g', '5 GHz', this.channels['5g'].length > 3
+					'5g', '5 GHz', this.channels['5g'].length > 3,
+					'6g', '6 GHz', this.channels['6g'].length > 3,
 				]
 			};
 		}, this));
@@ -578,14 +579,11 @@ var CBIWifiFrequencyValue = form.Value.extend({
 	},
 
 	write: function(section_id, value) {
-		uci.set('wireless', section_id, 'htmode', value[0] || null);
-
-		if (this.useBandOption)
-			uci.set('wireless', section_id, 'band', value[1]);
-		else
-			uci.set('wireless', section_id, 'hwmode', (value[1] == '2g') ? '11g' : '11a');
-
-		uci.set('wireless', section_id, 'channel', value[2]);
+		if (value[0] && value[1] && value[2])
+		{
+			uci.set('wireless', section_id, 'htmode', value[0]);
+			uci.set('wireless', section_id, 'channel', value[2]);
+		}
 	}
 });
 
@@ -1026,13 +1024,10 @@ return view.extend({
 					o.wifiNetwork = radioNet;
 
 					if (!isDisabled) {
-						if (band == '2g') {
-							o = ss.taboption('advanced', form.Flag, 'noscan', _('Force 40MHz mode'), _('Always use 40MHz channels even if the secondary channel overlaps. Using this option does not comply with IEEE 802.11n-2009!'));
-							o.depends({'_freq': 'HE40', '!contains': true});
-							o.depends({'_freq': 'HT40', '!contains': true});
-							o.default = o.disabled;
-							o.rmempty = false;
-						}
+						o = ss.taboption('advanced', form.Flag, 'noscan', _('Force 40MHz mode'), _('Always use 40MHz channels even if the secondary channel overlaps. Using this option does not comply with IEEE 802.11n-2009!'));
+						o.depends({'_freq': '2g', '!contains': true});
+						o.default = o.disabled;
+						o.rmempty = false;
 
 						o = ss.taboption('advanced', form.Flag, 'mu_beamformer', _('MU-MIMO'));
 						add_dep_he_feature(o);
@@ -1053,11 +1048,6 @@ return view.extend({
 					{
 						o = ss.taboption('advanced', form.Flag, 'whnat', _('Wireless HWNAT'));
 						o.default = o.enabled;
-
-						o = ss.taboption('advanced', form.Value, 'dtim_period', _('DTIM Interval'), _('Delivery Traffic Indication Message Interval'));
-						o.optional = true;
-						o.placeholder = 1;
-						o.datatype = 'range(1,255)';
 	
 						o = ss.taboption('advanced', form.Value, 'beacon_int', _('Beacon Interval'));
 						o.optional = true;
@@ -1357,6 +1347,12 @@ return view.extend({
 					o.depends('mode', 'ap');
 					o.placeholder = 2347;
 
+					o = ss.taboption('advanced', form.Value, 'dtim_period', _('DTIM Interval'), _('Delivery Traffic Indication Message Interval'));
+					o.optional = true;
+					o.placeholder = 1;
+					o.datatype = 'range(1,255)';
+					o.depends('mode', 'ap');
+
 					o = ss.taboption('advanced', form.Flag, 'mumimo_dl', _('MU-MIMO DL'));
 					o.depends('mode', 'ap');
 					o.default = o.disabled;
@@ -1581,13 +1577,15 @@ return view.extend({
 					crypto_modes.push(['wep-shared', _('WEP Shared Key'),         10]);
 				}
 				else if (hwtype == 'mtwifi') {
-					crypto_modes.push(['psk2',      'WPA2-PSK',                    35]);
-					crypto_modes.push(['psk',       'WPA-PSK',                     12]);
-					crypto_modes.push(['sae',       'WPA3-SAE',                     31]);
+					crypto_modes.push(['sae', 'WPA3-SAE', 31]);
 					crypto_modes.push(['owe', 'OWE', 1]);
-					if (ifmode == 'ap') {
-						crypto_modes.push(['psk-mixed', 'WPA-PSK/WPA2-PSK Mixed Mode', 22]);
-						crypto_modes.push(['sae-mixed', 'WPA2-PSK/WPA3-SAE Mixed Mode', 36]);
+					if (band != '6g') {
+						crypto_modes.push(['psk2', 'WPA2-PSK', 35]);
+						crypto_modes.push(['psk', 'WPA-PSK', 12]);
+						if (ifmode == 'ap') {
+							crypto_modes.push(['psk-mixed', 'WPA-PSK/WPA2-PSK Mixed Mode', 22]);
+							crypto_modes.push(['sae-mixed', 'WPA2-PSK/WPA3-SAE Mixed Mode', 36]);
+						}
 					}
 				}
 
