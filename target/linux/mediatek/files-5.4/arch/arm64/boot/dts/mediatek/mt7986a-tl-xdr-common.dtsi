@@ -71,6 +71,61 @@
  		};
 	};
 
+
+	nmbm_spim_nand {
+		compatible = "generic,nmbm";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		lower-mtd-device = <&spi_nand>;
+		forced-create;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "BL2";
+				reg = <0x000000 0x0100000>;
+				read-only;
+			};
+
+			partition@100000 {
+				label = "u-boot-env-stock";
+				reg = <0x100000 0x0060000>;
+				read-only;
+			};
+
+			Factory: partition@160000 {
+				label = "Factory";
+				reg = <0x160000 0x0060000>;
+				read-only;
+			};
+
+			partition@1c0000 {
+				label = "Reserved";
+				reg = <0x1c0000 0x0140000>;
+				read-only;
+			};
+
+			partition@300000 {
+				label = "u-boot-env";
+				reg = <0x300000 0x0080000>;
+			};
+
+			partition@380000 {
+				label = "FIP";
+				reg = <0x380000 0x0200000>;
+				read-only;
+			};
+
+			partition@580000 {
+				label = "ubi";
+				reg = <0x580000 0x7280000>;
+			};
+		};
+	};
+
 };
 
 &eth {
@@ -203,46 +258,6 @@
 		spi-max-frequency = <40000000>;
 		spi-tx-buswidth = <4>;
 		spi-rx-buswidth = <4>;
-		partitions {
- 			compatible = "fixed-partitions";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
-
- 			partition@0 {
- 				label = "bl2";
- 				reg = <0x000000 0x0100000>;
- 				// read-only;
- 			};
-
- 			partition@100000 {
- 				label = "config";
- 				reg = <0x100000 0x0060000>;
- 				read-only;
- 			};
-
- 			Factory: partition@160000 {
- 				label = "Factory";
- 				reg = <0x160000 0x00a0000>;
- 				read-only;
- 			};
-
- 			partition@200000 {
- 				label = "reserved";
- 				reg = <0x200000 0x0180000>;
- 				read-only;
- 			};
-
- 			partition@380000 {
- 				label = "fip";
- 				reg = <0x380000 0x0180000>;
- 				// read-only;
- 			};
-
- 			partition@500000 {
- 				label = "ubi";
- 				reg = <0x500000 0x7300000>;
- 			};
- 		};
 	};
 };
 

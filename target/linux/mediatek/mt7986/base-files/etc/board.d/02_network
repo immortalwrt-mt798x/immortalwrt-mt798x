@@ -105,7 +105,7 @@ mediatek_setup_macs()
  		;;
  	tplink,tl-xdr6086|\
  	tplink,tl-xdr6088)
-		lan_mac=$(mtd_get_mac_binary config 0x1c)
+		lan_mac=$(mtd_get_mac_binary u-boot-env-stock 0x1c)
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		local b0dat="$(l1dat if2dat ra0)"
 		local b1dat="$(l1dat if2dat rax0)"
