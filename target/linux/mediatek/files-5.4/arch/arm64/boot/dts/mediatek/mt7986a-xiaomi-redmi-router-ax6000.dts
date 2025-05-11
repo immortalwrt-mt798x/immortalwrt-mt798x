@@ -43,18 +43,8 @@
 			};
 
 			partition@580000 {
-				label = "crash";
-				reg = <0x580000 0x40000>;
-			};
-
-			partition@5c0000 {
-				label = "crash_log";
-				reg = <0x5c0000 0x40000>;
-			};
-
-			partition@600000 {
 				label = "ubi";
-				reg = <0x600000 0x6e00000>;
+				reg = <0x580000 0x7280000>;
 			};
 		};
 	};
